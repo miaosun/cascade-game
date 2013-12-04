@@ -1,0 +1,164 @@
+class Cascade
+
+values
+	public LimiteX: nat = 15;
+	public LimiteY: nat = 11;
+	public MinEliminateNumber: nat = 3;
+	public BonusNumber: nat = 15;
+
+types
+	public String = seq of char;
+	public Color = <yellow> | <green> | <red> | <empty> | <bomb>; 
+
+	public X = nat
+		inv x == x in set {0,..., LimiteX};
+	public Y = nat
+		inv y == y in set {0,..., LimiteY};
+	
+	public Position :: posX: X
+										 posY: Y;
+
+	public BlocksInGame = map Position to Color; 
+	-- nao deixa criar invariantes no types, se nao nao gera codigo de java, tem que passar para instance variables
+
+instance variables
+	public color: Color := <red>;
+	
+	public board: BlocksInGame := {|->};
+	-- so existem blocos dentro do tabuleiro
+	inv forall b in set dom board & b.posX in set {0,...,LimiteX} and b.posY in set {0,...,LimiteY};
+	-- nao existe 2 blocos na mesma posicao
+	inv not exists b1, b2 in set dom board & b1.posX = b2.posX and b1.posY = b2.posY;
+	-- nao existe espaco entre 2 blocos com conteudo
+	inv not exists b1, b2 in set dom board & b1.posX = b2.posX and 
+			((b1.posY = b2.posY + 2 and board(b1) <> <empty> and board(b2) <> <empty> and board(mk_Position(b1.posX, b2.posY+1)) = <empty>) or
+			 (b1.posY = b2.posY - 2 and board(b1) <> <empty> and board(b2) <> <empty> and board(mk_Position(b1.posX, b2.posY-1)) = <empty>));
+	
+	public line: BlocksInGame := {|->};
+	inv forall l in set dom line & l.posX in set {0,...,LimiteX} and l.posY in set {0,...,LimiteY};
+	inv not exists l1, l2 in set dom line & l1.posX <> l2.posX;
+	
+	public posSelected: Position;
+	
+	public gameScore: nat := 0;
+	
+	public numBlockEliminated : nat;
+	inv numBlockEliminated >= MinEliminateNumber;	
+	
+	public searchedBlocks: BlocksInGame :={|->};
+	
+operations
+	public Cascade : () ==> Cascade
+	Cascade () ==
+	(
+		board := {mk_Position(x, y) |-> <empty> | x in set {0,...,LimiteX}, y in set {0,...,LimiteY}};
+		InitCascade();
+	)
+	post board <> {|->};
+	
+	public InitCascade() ==
+	(
+		--gera 6 linhas de blocos iniciais
+		InsertALineOfBlocks();
+		InsertALineOfBlocks();
+		InsertALineOfBlocks();
+		InsertALineOfBlocks();
+		InsertALineOfBlocks();
+		InsertALineOfBlocks();
+	);
+
+	public InsertALineOfBlocks() ==
+	(
+		--gera uma linha de blocos na linha com posY=0
+		line := {mk_Position(x, 0) |-> color | x in set {0,...,LimiteX}};
+		
+		--atualiza posY de todos os blocos j¨¢ existia (posY+1)		
+		for all bd in set dom board do
+		(
+			dcl old_color: Color := <empty>;
+			old_color := board(bd);
+			if (bd.posY + 1) <= LimiteY then
+			board := board ++ {mk_Position(bd.posX, bd.posY+1) |-> old_color};		
+		);
+		board := board ++ line;
+	)
+	pre self.color <> <empty> and self.color <> <bomb>
+	post self.line <> {|->};
+
+	public updateBoard() ==
+	(
+		if(card (dom searchedBlocks) >= MinEliminateNumber) then
+		(
+			dcl mapTimes : map nat to nat := {|->};
+			while searchedBlocks <> {|->} do
+			(
+				dcl positions: seq of Position := VDMUtil`set2seq(dom searchedBlocks);
+				dcl pos: Position := hd positions;
+				dcl p: Position;
+				dcl num: nat := card{p| p in set dom searchedBlocks & p.posX = pos.posX};
+				
+				mapTimes := mapTimes ++ {pos.posX |-> num};
+				searchedBlocks := {p| p in set dom searchedBlocks & p.posX = pos.posX} <-: searchedBlocks;
+			)
+		);
+		-- {(1,2)|->0, (1,3)|->0, (2,1)|->0, (2,2)|->0, (2,3)|->0, (2,4)|->0}
+		-- como agrupar a mapa por chaves e contar numero de aparenca de cada chave?
+	);
+
+	public CalculateScore() score:nat ==
+	(
+		dcl sc: nat := 0;
+		if(card (dom searchedBlocks) >= MinEliminateNumber) then
+		sc := sc + 50 + 20*(numBlockEliminated - 3);
+		
+		gameScore := gameScore + sc;
+		return sc;
+	)
+	pre self.searchedBlocks <> {|->}
+	post self.gameScore = gameScore~ + score;
+
+	-- retorna todos os blocos de mesmo cor que estao ligado ao bloco selecionado
+	public GetBlocksToEliminate(x:X, y:Y) res: BlocksInGame ==
+	(
+			dcl neighbours: BlocksInGame := GetNeighbours(x, y);
+			
+			for all b in set dom (dom searchedBlocks <-: neighbours) do
+			(
+				neighbours := neighbours ++ GetNeighbours(b.posX, b.posY);
+				searchedBlocks:= searchedBlocks ++ ({b} <: board);
+			);
+			return neighbours;
+	)
+	post res = self.searchedBlocks;
+	
+	-- retorna vizinhos com mesmo cor
+	public GetNeighbours(x:X, y:Y) res: BlocksInGame ==
+	(
+		dcl p: Position := mk_Position(x, y);		
+		dcl left: Position := mk_Position(x-1, y);
+		dcl right: Position := mk_Position(x+1, y);
+    dcl up: Position := mk_Position(x, y+1);
+    dcl down: Position := mk_Position(x, y-1);
+
+    dcl m: BlocksInGame := {|->};
+    m := {|->} ++ ({p} <: board);		
+	
+		if(board(left) = board(p))
+		then m := m ++ ({left} <: board);
+
+		if(board(right) = board(p))
+		then m := m ++ ({right} <: board);
+
+		if(board(up) = board(p))
+		then m := m ++ ({up} <: board);
+
+		if(board(down) = board(p))
+		then m := m ++ ({down} <: board);
+	
+		searchedBlocks := searchedBlocks ++ ({p} <: board);
+		return m;
+	)
+	pre self.board(mk_Position(x, y)) <> <empty> and self.board(mk_Position(x, y)) <> <bomb>
+	post res <> {|->};
+
+end Cascade
