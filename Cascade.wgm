@@ -1,10 +1,10 @@
 FormatVersion:2
-mainW:0,23,1600,937,1
+mainW:0,22,1920,1018,1
 browserW:118,58,320,400,1
-codeW:424,94,400,400,1
+codeW:466,94,400,400,1
 errorW:892,43,563,361,1
 interpreterW:50,50,600,400,0
 logW:791,444,500,150,1
 pogW:80,80,600,420,0
-optionsW:517,327,566,329,0
+optionsW:0,0,566,329,0
 toolOptinsDialog:0,0,405,444,0
