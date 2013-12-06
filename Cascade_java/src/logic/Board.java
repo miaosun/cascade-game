@@ -102,23 +102,33 @@ public class Board implements EvaluatePP {
 
     public final int explode = 2;
 
-    public final int fixBoard = 3;
+    public final int distLeft = 3;
 
-    public final int willFinish = 4;
+    public final int fixBoard = 4;
 
-    public final int selectPiece = 5;
+    public final int moveLeft = 5;
 
-    public final int deletePieces = 6;
+    public final int distRight = 6;
 
-    public final int generateColor = 7;
+    public final int moveRight = 7;
 
-    public final int getNeighbours = 8;
+    public final int willFinish = 8;
 
-    public final int insertNewLine = 9;
+    public final int selectPiece = 9;
 
-    public final int selectPieceIter = 10;
+    public final int deletePieces = 10;
 
-    public final int nr_functions = 11;
+    public final int generateColor = 11;
+
+    public final int getNeighbours = 12;
+
+    public final int insertNewLine = 13;
+
+    public final int selectPieceIter = 14;
+
+    public final int fixBoardVertical = 15;
+
+    public final int nr_functions = 16;
 
 
     public BoardSentinel () throws CGException {}
@@ -149,14 +159,6 @@ public class Board implements EvaluatePP {
     }
   }
 // ***** VDMTOOLS END Name=setSentinel
-
-// ***** VDMTOOLS START Name=MinNumber KEEP=NO
-  public static final Number MinNumber = new Integer(3);
-// ***** VDMTOOLS END Name=MinNumber
-
-// ***** VDMTOOLS START Name=BonusNumber KEEP=NO
-  public static final Number BonusNumber = new Integer(15);
-// ***** VDMTOOLS END Name=BonusNumber
 
 // ***** VDMTOOLS START Name=LimiteX KEEP=NO
   public static final Number LimiteX = new Integer(15);
@@ -253,11 +255,9 @@ public class Board implements EvaluatePP {
 
 
 // ***** VDMTOOLS START Name=printCell#1|Cell KEEP=NO
-  private Boolean printCell (final Cell p) throws CGException {
+  static public Boolean printCell (final Cell p) throws CGException {
     Boolean varRes_2 = null;
-    if (UTIL.equals((p.color), new quotes.empty())) 
-      varRes_2 = io.echo(new String(".    "));
-    else if (UTIL.equals((p.color), new quotes.red())) 
+    if (UTIL.equals((p.color), new quotes.red())) 
       varRes_2 = io.echo(new String("R   "));
     else if (UTIL.equals((p.color), new quotes.yellow())) 
       varRes_2 = io.echo(new String("Y   "));
@@ -266,7 +266,7 @@ public class Board implements EvaluatePP {
     else if (UTIL.equals((p.color), new quotes.bomb())) 
       varRes_2 = io.echo(new String("#   "));
     else 
-      varRes_2 = Boolean.FALSE;
+      varRes_2 = io.echo(new String(".    "));
     return varRes_2;
   }
 // ***** VDMTOOLS END Name=printCell#1|Cell
@@ -276,6 +276,8 @@ public class Board implements EvaluatePP {
   public Board () throws CGException {
     try {
       vdm_init_Board();
+      if (!this.pre_Board().booleanValue()) 
+        UTIL.RunTime("Precondition failure in Board");
       //new MATH().srand(new Integer(1));
       {
         Set iset_6 = new HashSet();
@@ -335,13 +337,20 @@ public class Board implements EvaluatePP {
 // ***** VDMTOOLS END Name=Board
 
 
+// ***** VDMTOOLS START Name=pre_Board KEEP=NO
+  public Boolean pre_Board () throws CGException {
+    return Boolean.valueOf(UTIL.equals((this.pieces), new HashMap()));
+  }
+// ***** VDMTOOLS END Name=pre_Board
+
+
 // ***** VDMTOOLS START Name=generateColor KEEP=NO
   public Object generateColor () throws CGException {
     sentinel.entering(((BoardSentinel)sentinel).generateColor);
     try {
       Number num = null;
       MATH obj_2 = new MATH();
-      num = (int)(Math.random()*4); //num = obj_2.rand(new Integer(3));
+      num = (int)(Math.random()*3); //obj_2.rand(new Integer(3));
       if (num.intValue() == 0) 
         return new quotes.yellow();
       else if (num.intValue() == 1) 
@@ -892,6 +901,270 @@ public class Board implements EvaluatePP {
     }
   }
 // ***** VDMTOOLS END Name=fixBoard
+
+
+// ***** VDMTOOLS START Name=fixBoardVertical KEEP=NO
+  public void fixBoardVertical () throws CGException {
+    sentinel.entering(((BoardSentinel)sentinel).fixBoardVertical);
+    try {
+      Number count = new Integer(0);
+      {
+        Set iset_5 = new HashSet(pieces.keySet());
+        Set tmpSet_38 = new HashSet(iset_5);
+        for (Iterator enm_37 = tmpSet_38.iterator(); enm_37.hasNext(); ) {
+          Position elem_1 = (Position)enm_37.next();
+          Position p = null;
+          /* p */
+          p = elem_1;
+          Boolean cond_6 = null;
+          if ((cond_6 = Boolean.valueOf(UTIL.equals((((Cell)pieces.get(p)).color), new quotes.empty()))).booleanValue()) 
+            cond_6 = Boolean.valueOf((p.posY).intValue() == 0);
+          if (cond_6.booleanValue()) {
+            Number distLeft_1 = distLeft((p.posX));
+            Number distRight_1 = distRight((p.posX));
+            if (distLeft_1.intValue() < (p.posX).intValue()) {
+              count = new Integer(count.intValue() + moveRight(distLeft_1).intValue());
+              if (!this.inv_Board().booleanValue()) 
+                UTIL.RunTime("Instance invariant failure in Board");
+            }
+            if (distRight_1.intValue() > (p.posX).intValue()) {
+              count = new Integer(count.intValue() + moveLeft(distRight_1).intValue());
+              if (!this.inv_Board().booleanValue()) 
+                UTIL.RunTime("Instance invariant failure in Board");
+            }
+          }
+        }
+      }
+      if (count.intValue() > 0) 
+        fixBoardVertical();
+    }
+    finally {
+      sentinel.leaving(((BoardSentinel)sentinel).fixBoardVertical);
+    }
+  }
+// ***** VDMTOOLS END Name=fixBoardVertical
+
+
+// ***** VDMTOOLS START Name=distLeft#1|Number KEEP=NO
+  public Number distLeft (final Number posx) throws CGException {
+    sentinel.entering(((BoardSentinel)sentinel).distLeft);
+    try {
+      {
+        Set iset_4 = new HashSet();
+        iset_4 = new HashSet();
+        int ubi_11 = (posx.intValue() - 1);
+        for (int count_9 = 0; count_9 <= ubi_11; count_9++) 
+          iset_4.add(new Integer(count_9));
+        Set iset_12 = iset_4;
+        Set tmpSet_25 = new HashSet(iset_12);
+        for (Iterator enm_24 = tmpSet_25.iterator(); enm_24.hasNext(); ) {
+          Number elem_2 = UTIL.NumberToInt(enm_24.next());
+          Number x = null;
+          /* x */
+          x = elem_2;
+          if (!UTIL.equals((((Cell)pieces.get(new Position(new Integer(-x.intValue()), new Integer(0)))).color), new quotes.empty())) 
+            return new Integer(-x.intValue());
+        }
+      }
+      return posx;
+    }
+    finally {
+      sentinel.leaving(((BoardSentinel)sentinel).distLeft);
+    }
+  }
+// ***** VDMTOOLS END Name=distLeft#1|Number
+
+
+// ***** VDMTOOLS START Name=distRight#1|Number KEEP=NO
+  public Number distRight (final Number posx) throws CGException {
+    sentinel.entering(((BoardSentinel)sentinel).distRight);
+    try {
+      {
+        Set iset_4 = new HashSet();
+        iset_4 = new HashSet();
+        int lbi_10 = (posx.intValue() + 1);
+        int ubi_11 = LimiteX.intValue();
+        for (int count_9 = lbi_10; count_9 <= ubi_11; count_9++) 
+          iset_4.add(new Integer(count_9));
+        Set iset_12 = iset_4;
+        Set tmpSet_23 = new HashSet(iset_12);
+        for (Iterator enm_22 = tmpSet_23.iterator(); enm_22.hasNext(); ) {
+          Number elem_2 = UTIL.NumberToInt(enm_22.next());
+          Number x = null;
+          /* x */
+          x = elem_2;
+          if (!UTIL.equals((((Cell)pieces.get(new Position(x, new Integer(0)))).color), new quotes.empty())) 
+            return x;
+        }
+      }
+      return posx;
+    }
+    finally {
+      sentinel.leaving(((BoardSentinel)sentinel).distRight);
+    }
+  }
+// ***** VDMTOOLS END Name=distRight#1|Number
+
+
+// ***** VDMTOOLS START Name=moveLeft#1|Number KEEP=NO
+  public Number moveLeft (final Number posx) throws CGException {
+    sentinel.entering(((BoardSentinel)sentinel).moveLeft);
+    try {
+      if (!this.pre_moveLeft(posx).booleanValue()) 
+        UTIL.RunTime("Precondition failure in moveLeft");
+      {
+        Map new_pieces = pieces;
+        Number count = new Integer(0);
+        {
+          Set iset_4 = new HashSet();
+          iset_4 = new HashSet();
+          int lbi_10 = (-LimiteX.intValue());
+          int ubi_11 = (-posx.intValue());
+          for (int count_9 = lbi_10; count_9 <= ubi_11; count_9++) 
+            iset_4.add(new Integer(count_9));
+          Set iset_12 = iset_4;
+          Set tmpSet_62 = new HashSet(iset_12);
+          for (Iterator enm_61 = tmpSet_62.iterator(); enm_61.hasNext(); ) {
+            Number elem_2 = UTIL.NumberToInt(enm_61.next());
+            Number x = null;
+            /* x */
+            x = elem_2;
+            {
+              Set iset_15 = new HashSet();
+              iset_15 = new HashSet();
+              int ubi_20 = LimiteY.intValue();
+              for (int count_18 = 0; count_18 <= ubi_20; count_18++) 
+                iset_15.add(new Integer(count_18));
+              Set iset_21 = iset_15;
+              Set tmpSet_60 = new HashSet(iset_21);
+              for (Iterator enm_59 = tmpSet_60.iterator(); enm_59.hasNext(); ) {
+                Number elem_13 = UTIL.NumberToInt(enm_59.next());
+                Number y = null;
+                /* y */
+                y = elem_13;
+                Cell level_29 = null;
+                if (new_pieces.containsKey(new Position(new Integer((-x.intValue()) - 1), y))) 
+                  level_29 = (Cell)new_pieces.get(new Position(new Integer((-x.intValue()) - 1), y));
+                else 
+                  level_29 = new Cell();
+                level_29.color = (((Cell)pieces.get(new Position(new Integer(-x.intValue()), y))).color);
+                new_pieces.put(new Position(new Integer((-x.intValue()) - 1), y), level_29);
+                if (!this.inv_Board().booleanValue()) 
+                  UTIL.RunTime("Instance invariant failure in Board");
+                Cell level_45 = null;
+                if (new_pieces.containsKey(new Position(new Integer(-x.intValue()), y))) 
+                  level_45 = (Cell)new_pieces.get(new Position(new Integer(-x.intValue()), y));
+                else 
+                  level_45 = new Cell();
+                level_45.color = new quotes.empty();
+                new_pieces.put(new Position(new Integer(-x.intValue()), y), level_45);
+                if (!this.inv_Board().booleanValue()) 
+                  UTIL.RunTime("Instance invariant failure in Board");
+                count = new Integer(count.intValue() + 1);
+                if (!this.inv_Board().booleanValue()) 
+                  UTIL.RunTime("Instance invariant failure in Board");
+              }
+            }
+          }
+        }
+        pieces = (Map)UTIL.clone(new_pieces);
+        if (!this.inv_Board().booleanValue()) 
+          UTIL.RunTime("Instance invariant failure in Board");
+        return count;
+      }
+    }
+    finally {
+      sentinel.leaving(((BoardSentinel)sentinel).moveLeft);
+    }
+  }
+// ***** VDMTOOLS END Name=moveLeft#1|Number
+
+
+// ***** VDMTOOLS START Name=pre_moveLeft#1|Number KEEP=NO
+  public Boolean pre_moveLeft (final Number posx) throws CGException {
+    return Boolean.valueOf(posx.intValue() >= 1);
+  }
+// ***** VDMTOOLS END Name=pre_moveLeft#1|Number
+
+
+// ***** VDMTOOLS START Name=moveRight#1|Number KEEP=NO
+  public Number moveRight (final Number posx) throws CGException {
+    sentinel.entering(((BoardSentinel)sentinel).moveRight);
+    try {
+      if (!this.pre_moveRight(posx).booleanValue()) 
+        UTIL.RunTime("Precondition failure in moveRight");
+      {
+        Map new_pieces = pieces;
+        Number count = new Integer(0);
+        {
+          Set iset_4 = new HashSet();
+          iset_4 = new HashSet();
+          int ubi_9 = posx.intValue();
+          for (int count_7 = 0; count_7 <= ubi_9; count_7++) 
+            iset_4.add(new Integer(count_7));
+          Set iset_10 = iset_4;
+          Set tmpSet_55 = new HashSet(iset_10);
+          for (Iterator enm_54 = tmpSet_55.iterator(); enm_54.hasNext(); ) {
+            Number elem_2 = UTIL.NumberToInt(enm_54.next());
+            Number x = null;
+            /* x */
+            x = elem_2;
+            {
+              Set iset_13 = new HashSet();
+              iset_13 = new HashSet();
+              int ubi_18 = LimiteY.intValue();
+              for (int count_16 = 0; count_16 <= ubi_18; count_16++) 
+                iset_13.add(new Integer(count_16));
+              Set iset_19 = iset_13;
+              Set tmpSet_53 = new HashSet(iset_19);
+              for (Iterator enm_52 = tmpSet_53.iterator(); enm_52.hasNext(); ) {
+                Number elem_11 = UTIL.NumberToInt(enm_52.next());
+                Number y = null;
+                /* y */
+                y = elem_11;
+                Cell level_26 = null;
+                if (new_pieces.containsKey(new Position(new Integer(x.intValue() + 1), y))) 
+                  level_26 = (Cell)new_pieces.get(new Position(new Integer(x.intValue() + 1), y));
+                else 
+                  level_26 = new Cell();
+                level_26.color = (((Cell)pieces.get(new Position(x, y))).color);
+                new_pieces.put(new Position(new Integer(x.intValue() + 1), y), level_26);
+                if (!this.inv_Board().booleanValue()) 
+                  UTIL.RunTime("Instance invariant failure in Board");
+                Cell level_40 = null;
+                if (new_pieces.containsKey(new Position(x, y))) 
+                  level_40 = (Cell)new_pieces.get(new Position(x, y));
+                else 
+                  level_40 = new Cell();
+                level_40.color = new quotes.empty();
+                new_pieces.put(new Position(x, y), level_40);
+                if (!this.inv_Board().booleanValue()) 
+                  UTIL.RunTime("Instance invariant failure in Board");
+                count = new Integer(count.intValue() + 1);
+                if (!this.inv_Board().booleanValue()) 
+                  UTIL.RunTime("Instance invariant failure in Board");
+              }
+            }
+          }
+        }
+        pieces = (Map)UTIL.clone(new_pieces);
+        if (!this.inv_Board().booleanValue()) 
+          UTIL.RunTime("Instance invariant failure in Board");
+        return count;
+      }
+    }
+    finally {
+      sentinel.leaving(((BoardSentinel)sentinel).moveRight);
+    }
+  }
+// ***** VDMTOOLS END Name=moveRight#1|Number
+
+
+// ***** VDMTOOLS START Name=pre_moveRight#1|Number KEEP=NO
+  public Boolean pre_moveRight (final Number posx) throws CGException {
+    return Boolean.valueOf(posx.intValue() < LimiteX.intValue());
+  }
+// ***** VDMTOOLS END Name=pre_moveRight#1|Number
 
 }
 ;

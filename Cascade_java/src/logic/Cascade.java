@@ -10,7 +10,7 @@
 // ***** VDMTOOLS START Name=HeaderComment KEEP=NO
 // ***** VDMTOOLS END Name=HeaderComment
 
-// This file was genereted from "D:\\Workspace\\MFES\\Project\\Cascade\\Cascade/Cascade.rtf".
+// This file was genereted from "D:\\Workspace\\MFES\\Project\\Cascade\\Cascade\\Cascade.rtf".
 
 // ***** VDMTOOLS START Name=package KEEP=NO
 package logic;
@@ -39,9 +39,13 @@ public class Cascade implements EvaluatePP {
   public volatile Number score = null;
 // ***** VDMTOOLS END Name=score
 
-// ***** VDMTOOLS START Name=timeToNextLevel KEEP=NO
-  public volatile Number timeToNextLevel = null;
-// ***** VDMTOOLS END Name=timeToNextLevel
+// ***** VDMTOOLS START Name=timeToNextLine KEEP=NO
+  public volatile Number timeToNextLine = null;
+// ***** VDMTOOLS END Name=timeToNextLine
+
+// ***** VDMTOOLS START Name=isPlayable KEEP=NO
+  public volatile Boolean isPlayable = null;
+// ***** VDMTOOLS END Name=isPlayable
 
 // ***** VDMTOOLS START Name=sentinel KEEP=NO
   volatile Sentinel sentinel;
@@ -55,7 +59,13 @@ public class Cascade implements EvaluatePP {
 
     public final int Cascade = 1;
 
-    public final int nr_functions = 2;
+    public final int endGame = 2;
+
+    public final int isVictory = 3;
+
+    public final int nextLevel = 4;
+
+    public final int nr_functions = 5;
 
 
     public CascadeSentinel () throws CGException {}
@@ -95,6 +105,10 @@ public class Cascade implements EvaluatePP {
   public static final Number NLinesNextLevel = new Integer(10);
 // ***** VDMTOOLS END Name=NLinesNextLevel
 
+// ***** VDMTOOLS START Name=maxLevel KEEP=NO
+  public static final Number maxLevel = new Integer(15);
+// ***** VDMTOOLS END Name=maxLevel
+
 
 // ***** VDMTOOLS START Name=vdm_init_Cascade KEEP=NO
   private void vdm_init_Cascade () {
@@ -103,7 +117,8 @@ public class Cascade implements EvaluatePP {
       board = new Board();
       level = new Integer(1);
       score = new Integer(0);
-      timeToNextLevel = UTIL.NumberToInt(new Integer((int)(1000 * (8 - (level.intValue() * 0.5)))));
+      timeToNextLine = UTIL.NumberToInt(new Integer((int)(1000 * (8 - (level.intValue() * 0.5)))));
+      isPlayable = Boolean.TRUE;
     }
     catch (Exception e) {
       e.printStackTrace(System.out);
@@ -111,6 +126,19 @@ public class Cascade implements EvaluatePP {
     }
   }
 // ***** VDMTOOLS END Name=vdm_init_Cascade
+
+
+// ***** VDMTOOLS START Name=inv_Cascade KEEP=NO
+  public Boolean inv_Cascade () {
+    Boolean rexpr_8 = null;
+    Boolean var1_9 = null;
+    if ((var1_9 = Boolean.valueOf(level.intValue() > 0)).booleanValue()) 
+      var1_9 = Boolean.valueOf(level.intValue() <= (maxLevel.intValue() + 1));
+    if ((rexpr_8 = var1_9).booleanValue()) 
+      rexpr_8 = Boolean.valueOf(score.intValue() >= 0);
+    return rexpr_8;
+  }
+// ***** VDMTOOLS END Name=inv_Cascade
 
 
 // ***** VDMTOOLS START Name=CalculateScore#1|Number KEEP=NO
@@ -158,8 +186,13 @@ public class Cascade implements EvaluatePP {
     sentinel.entering(((CascadeSentinel)sentinel).play);
     try {
       Number n_pieces = board.deletePieces(pos);
-      if (n_pieces.intValue() >= 3) {
+      Boolean cond_3 = null;
+      if ((cond_3 = Boolean.valueOf(n_pieces.intValue() >= 3)).booleanValue()) 
+        cond_3 = isPlayable;
+      if (cond_3.booleanValue()) {
         score = new Integer(score.intValue() + CalculateScore(n_pieces).intValue());
+        if (!this.inv_Cascade().booleanValue()) 
+          UTIL.RunTime("Instance invariant failure in Cascade");
         return CalculateScore(n_pieces);
       }
       else 
@@ -170,6 +203,92 @@ public class Cascade implements EvaluatePP {
     }
   }
 // ***** VDMTOOLS END Name=play#1
+
+
+// ***** VDMTOOLS START Name=nextLevel KEEP=NO
+  public Boolean nextLevel () throws CGException {
+    sentinel.entering(((CascadeSentinel)sentinel).nextLevel);
+    try {
+      if (!this.pre_nextLevel().booleanValue()) 
+        UTIL.RunTime("Precondition failure in nextLevel");
+      level = new Integer(level.intValue() + 1);
+      if (!this.inv_Cascade().booleanValue()) 
+        UTIL.RunTime("Instance invariant failure in Cascade");
+      Number rhs_11 = new Double(1000 * (8 - (level.intValue() * 0.5)));
+      if (!UTIL.IsNat(((Object)rhs_11))) 
+        UTIL.RunTime("Incompatible type");
+      timeToNextLine = UTIL.NumberToInt(UTIL.clone(rhs_11));
+      if (!this.inv_Cascade().booleanValue()) 
+        UTIL.RunTime("Instance invariant failure in Cascade");
+      if (level.intValue() == (maxLevel.intValue() + 1)) {
+        isPlayable = Boolean.FALSE;
+        if (!this.inv_Cascade().booleanValue()) 
+          UTIL.RunTime("Instance invariant failure in Cascade");
+        return Boolean.FALSE;
+      }
+      return Boolean.TRUE;
+    }
+    finally {
+      sentinel.leaving(((CascadeSentinel)sentinel).nextLevel);
+    }
+  }
+// ***** VDMTOOLS END Name=nextLevel
+
+
+// ***** VDMTOOLS START Name=pre_nextLevel KEEP=NO
+  public Boolean pre_nextLevel () throws CGException {
+    return isPlayable;
+  }
+// ***** VDMTOOLS END Name=pre_nextLevel
+
+
+// ***** VDMTOOLS START Name=endGame KEEP=NO
+  public void endGame () throws CGException {
+    sentinel.entering(((CascadeSentinel)sentinel).endGame);
+    try {
+      if (!this.pre_endGame().booleanValue()) 
+        UTIL.RunTime("Precondition failure in endGame");
+      isPlayable = Boolean.FALSE;
+      if (!this.inv_Cascade().booleanValue()) 
+        UTIL.RunTime("Instance invariant failure in Cascade");
+    }
+    finally {
+      sentinel.leaving(((CascadeSentinel)sentinel).endGame);
+    }
+  }
+// ***** VDMTOOLS END Name=endGame
+
+
+// ***** VDMTOOLS START Name=pre_endGame KEEP=NO
+  public Boolean pre_endGame () throws CGException {
+    return isPlayable;
+  }
+// ***** VDMTOOLS END Name=pre_endGame
+
+
+// ***** VDMTOOLS START Name=isVictory KEEP=NO
+  public Boolean isVictory () throws CGException {
+    sentinel.entering(((CascadeSentinel)sentinel).isVictory);
+    try {
+      if (!this.pre_isVictory().booleanValue()) 
+        UTIL.RunTime("Precondition failure in isVictory");
+      if (level.intValue() == (maxLevel.intValue() + 1)) 
+        return Boolean.TRUE;
+      else 
+        return Boolean.FALSE;
+    }
+    finally {
+      sentinel.leaving(((CascadeSentinel)sentinel).isVictory);
+    }
+  }
+// ***** VDMTOOLS END Name=isVictory
+
+
+// ***** VDMTOOLS START Name=pre_isVictory KEEP=NO
+  public Boolean pre_isVictory () throws CGException {
+    return Boolean.valueOf(!isPlayable.booleanValue());
+  }
+// ***** VDMTOOLS END Name=pre_isVictory
 
 }
 ;
