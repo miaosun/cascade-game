@@ -34,21 +34,23 @@ public class CascadeFrame extends javax.swing.JFrame {
 	
     public CascadeFrame() throws CGException {
         initComponents();
+        game = new Cascade();
+        
         mouse = new MouseAdapter() { 
             public void mousePressed(MouseEvent me) {
             	try {
             		Board.Position pos = inv_pieces.get((JPanel)me.getComponent());
             		System.out.println("Deleting ("+pos.posX+","+pos.posY+")");
-					System.out.println(game.board.deletePieces(pos));
+					System.out.println(game.play(pos));
 					update();
 				} catch (CGException e) {e.printStackTrace();}
             } 
           };
-        game = new Cascade();
+        
         initPieces();
         initListener();
         update();
-        LineInserter t = new LineInserter(game,this);
+        UpdateThread t = new UpdateThread(game,this);
         new Thread(t).start();
     }
     
@@ -298,7 +300,7 @@ public class CascadeFrame extends javax.swing.JFrame {
     
     public void update() {
     	
-    	score_lbl.setText(game.gameScore.toString());
+    	score_lbl.setText(game.score.toString());
     	level_lbl.setText(game.level.toString());
     	
     	for(int x=0; x<=15; x++){
