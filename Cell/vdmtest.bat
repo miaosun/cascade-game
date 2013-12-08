@@ -9,7 +9,7 @@ set S1=Cell.rtf
 set S2=TestCell.rtf
 
 rem -- Calls the interpreter for this test case
-"C:\Program Files\The VDM++ Toolbox v9.0.2\bin\vppde" -i -D -I -P -Q -R vdm.tc -O %1.res %1 %S1% %S2%
+"E:\The VDM++ Toolbox v9.0.2\bin\vppde" -i -D -I -P -Q -R vdm.tc -O %1.res %1 %S1% %S2%
 
 rem -- Check for difference between result of execution and expected result.
 if EXIST %1.exp fc /w %1.res %1.exp
