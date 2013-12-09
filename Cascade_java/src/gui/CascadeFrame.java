@@ -7,7 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextPane;
 
 import quotes.bomb;
 import quotes.empty;
@@ -303,33 +305,47 @@ public class CascadeFrame extends javax.swing.JFrame {
     	score_lbl.setText(game.score.toString());
     	level_lbl.setText(game.level.toString());
     	
-    	for(int x=0; x<=15; x++){
-    		for(int y=0; y<=11; y++){
-    			Board.Position pos = new Board.Position(x,y);
-    			Cell c = (Cell)game.board.pieces.get(pos);
-    			pieces.get(pos).setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED, new java.awt.Color(255, 255, 255), new java.awt.Color(204, 204, 204), new java.awt.Color(153, 153, 153), new java.awt.Color(153, 153, 153)));
-    			if(c.color.getClass() == (new red().getClass()))
-    				pieces.get(pos).setBackground(new Color(255,0,0));
-    			else if(c.color.getClass() == (new yellow().getClass()))
-    				pieces.get(pos).setBackground(new Color(255,255,0));
-    			else if(c.color.getClass() == (new green().getClass()))
-    				pieces.get(pos).setBackground(new Color(0,255,0));
-    			else if(c.color.getClass() == (new bomb().getClass()))
-    				pieces.get(pos).setBackground(new Color(0,0,0));
-    			else if(c.color.getClass() == (new empty().getClass())){
-    				pieces.get(pos).setBackground(new Color(102,102,102));
-    				applyTransparentBorder(pieces.get(pos));
-    			}
-    		}
-	    	Cell c = (Cell)game.board.next_pieces.get(x);
-			if(c.color.getClass() == (new red().getClass()))
-				next_pieces.get(x).setBackground(new Color(255,0,0));
-			else if(c.color.getClass() == (new yellow().getClass()))
-				next_pieces.get(x).setBackground(new Color(255,255,0));
-			else if(c.color.getClass() == (new green().getClass()))
-				next_pieces.get(x).setBackground(new Color(0,255,0));
+    	if(game.isPlayable){
+	    	for(int x=0; x<=15; x++){
+	    		for(int y=0; y<=11; y++){
+	    			Board.Position pos = new Board.Position(x,y);
+	    			Cell c = (Cell)game.board.pieces.get(pos);
+	    			pieces.get(pos).setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED, new java.awt.Color(255, 255, 255), new java.awt.Color(204, 204, 204), new java.awt.Color(153, 153, 153), new java.awt.Color(153, 153, 153)));
+	    			if(c.color.getClass() == (new red().getClass()))
+	    				pieces.get(pos).setBackground(new Color(255,0,0));
+	    			else if(c.color.getClass() == (new yellow().getClass()))
+	    				pieces.get(pos).setBackground(new Color(255,255,0));
+	    			else if(c.color.getClass() == (new green().getClass()))
+	    				pieces.get(pos).setBackground(new Color(0,255,0));
+	    			else if(c.color.getClass() == (new bomb().getClass()))
+	    				pieces.get(pos).setBackground(new Color(0,0,0));
+	    			else if(c.color.getClass() == (new empty().getClass())){
+	    				pieces.get(pos).setBackground(new Color(102,102,102));
+	    				applyTransparentBorder(pieces.get(pos));
+	    			}
+	    		}
+		    	Cell c = (Cell)game.board.next_pieces.get(x);
+				if(c.color.getClass() == (new red().getClass()))
+					next_pieces.get(x).setBackground(new Color(255,0,0));
+				else if(c.color.getClass() == (new yellow().getClass()))
+					next_pieces.get(x).setBackground(new Color(255,255,0));
+				else if(c.color.getClass() == (new green().getClass()))
+					next_pieces.get(x).setBackground(new Color(0,255,0));
+	    	}
     	}
+    	else{
+    		board.setVisible(false);
+    		next_line.setVisible(false);
+    		try {
+				if(game.isVictory()) jLabel1.setText("You won with a score of:");
+				else{
+					jLabel1.setText("Game over!   Score:");
+				}
+			} catch (CGException e) {
+				e.printStackTrace();
+			}
     		
+    	}
     }
 
     private void applyTransparentBorder(JPanel p) {

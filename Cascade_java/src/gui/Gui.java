@@ -11,9 +11,7 @@ public class Gui {
 	 * @throws CGException 
 	 */
 	public static void main(String[] args) throws CGException {
-		System.out.println("Here");
 		Frame f = new CascadeFrame();
-		System.out.println("Here");
         f.setVisible(true);
 	}
 
